@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>SPHERE CLUB オーナー登録</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body style="background:#eee;">
+  <p style="font-size:14px;padding:8px;">
+    読み込み中です…少々お待ちください。
+  </p>
+
+  <script>
+    // ★あとで本物を入れる
+    const LIFF_ID = 'REPLACE_WITH_LIFF_ID';
+    const MAKE_WEBHOOK_URL = 'REPLACE_WITH_WEBHOOK_URL';
+
+    async function main() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const params = new URLSearchParams(window.location.search);
+        const sid = params.get('sid');
+
+        const res = await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            displayName: profile.displayName,
+            userId: profile.userId,
+            serial: sid,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Webhook Error: ' + res.status);
+        }
+
+        alert('登録が完了しました。ご協力ありがとうございます。');
+        if (liff.isInClient()) {
+          liff.closeWindow();
+        }
+      } catch (e) {
+        alert('エラー内容: ' + (e.message || e));
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>
