@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>SPHERE CLUB 保証書有効化フォーム</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background:#f5f5f5; margin:0; }
+    .wrap { max-width: 480px; margin:0 auto; padding:16px; background:#fff; box-sizing:border-box; }
+    h1 { font-size:18px; margin:0 0 12px; }
+    p.note { font-size:13px; color:#555; margin:0 0 16px; }
+    label { display:block; font-size:13px; margin:12px 0 4px; }
+    input, select, textarea {
+      width:100%; padding:8px; font-size:14px;
+      box-sizing:border-box; border:1px solid #ccc; border-radius:4px;
+    }
+    .checkbox-group { font-size:13px; }
+    .checkbox-group label { display:block; margin:4px 0; }
+    button {
+      margin-top:18px; width:100%; padding:10px;
+      font-size:15px; border:none; border-radius:4px;
+      background:#222; color:#fff;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>保証書有効化手続き</h1>
+  <p class="note">
+    作品保証書の有効化のため、以下の項目をご入力ください。<br>
+    ※LINEの表示名とシリアルIDは自動で取得されます。
+  </p>
+
+  <form id="warrantyForm">
+    <label>LINE名</label>
+    <input type="text" id="lineName" disabled />
+
+    <label>シリアルID</label>
+    <input type="text" id="serial" placeholder="例：AA-0001" />
+
+    <label>お名前（フルネーム）</label>
+    <input type="text" id="fullName" required />
+
+    <label>フリガナ</label>
+    <input type="text" id="kana" required />
+
+    <label>メールアドレス</label>
+    <input type="email" id="email" required />
+
+    <label>作家名</label>
+    <input type="text" id="artist" />
+
+    <label>興味のある資産</label>
+    <div class="checkbox-group">
+      <label><input type="checkbox" name="assets" value="現代アート"> 現代アート</label>
+      <label><input type="checkbox" name="assets" value="NFT"> NFT</label>
+      <label><input type="checkbox" name="assets" value="株式"> 株式</label>
+      <label><input type="checkbox" name="assets" value="不動産"> 不動産</label>
+      <label><input type="checkbox" name="assets" value="その他"> その他</label>
+    </div>
+
+    <button type="submit">送信する</button>
+  </form>
+</div>
+
+<script>
+  // ★あとで正しいID / URL を入れる
+  const LIFF_ID = 'REPLACE_WITH_WARRANTY_LIFF_ID';
+  const MAKE_WEBHOOK_URL = 'REPLACE_WITH_WARRANTY_WEBHOOK_URL';
+
+  async function main() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+
+      const profile = await liff.getProfile();
+      document.getElementById('lineName').value = profile.displayName;
+
+      // URLパラメータに sid があればシリアルとして自動入力
+      const sid = new URLSearchParams(window.location.search).get('sid');
+      if (sid) document.getElementById('serial').value = sid;
+
+      const form = document.getElementById('warrantyForm');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fullName = document.getElementById('fullName').value.trim();
+        const kana = document.getElementById('kana').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const artist = document.getElementById('artist').value.trim();
+        const serial = document.getElementById('serial').value.trim();
+
+        if (!fullName || !kana || !email) {
+          alert('お名前・フリガナ・メールアドレスは必須です。');
+          return;
+        }
+
+        const assetEls = document.querySelectorAll('input[name="assets"]:checked');
+        const assets = Array.from(assetEls).map(el => el.value).join(', ');
+
+        const payload = {
+          displayName: profile.displayName,
+          userId: profile.userId,
+          serial,
+          fullName,
+          kana,
+          email,
+          artist,
+          assets
+        };
+
+        const res = await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('Webhook Error: ' + res.status);
+
+        alert('保証書の有効化手続きが完了しました。ありがとうございます。');
+
+        if (liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          window.close();
+        }
+      });
+    } catch (e) {
+      alert('エラー内容: ' + (e.message || e));
+    }
+  }
+
+  main();
+</script>
+</body>
+</html>
