@@ -16,7 +16,7 @@
     // ★あとで本物を入れる
     const LIFF_ID ='2009203252-28MV0u5y';
     const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/rz9spqo3wja7f4rimw4sqxq53liqguky';
-
+    const OFFICIAL_LINE_URL = 'https://line.me/R/ti/p/@592txhpn'; //
     async function main() {
       try {
         await liff.init({ liffId: LIFF_ID });
@@ -45,9 +45,19 @@
         }
 
         alert('登録が完了しました。ご協力ありがとうございます。');
+
+        // 公式LINEのトーク／友だち追加画面へ誘導
         if (liff.isInClient()) {
-          liff.closeWindow();
-        }
+            // LINEアプリ内で公式アカウントを開く
+           liff.openWindow({
+    url: OFFICIAL_LINE_URL,
+    external: false
+  });
+} else {
+  // ブラウザから開かれていた場合もLINEを開きにいく
+  window.location.href = OFFICIAL_LINE_URL;
+}
+        
       } catch (e) {
         alert('エラー内容: ' + (e.message || e));
       }
