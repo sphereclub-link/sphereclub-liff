@@ -72,7 +72,7 @@
 
   async function main() {
     try {
-      await liff.init({});
+      await liff.init({liffId: LIFF_ID});
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
