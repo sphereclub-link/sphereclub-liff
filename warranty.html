@@ -61,18 +61,30 @@
       <label><input type="checkbox" name="assets" value="その他"> その他</label>
     </div>
 
+    <!-- 追加：購入区分 -->
+    <label for="purchaseType">この作品をどこで購入しましたか？</label>
+    <select id="purchaseType">
+      <option value="" selected disabled>選択してください</option>
+      <option value="direct">SPHERE ONE / SPHERE CLUB から直接購入</option>
+      <option value="gallery">他のギャラリー・オークション等で購入</option>
+      <option value="personal">個人間での売買・譲渡（友人・フリマ等）</option>
+    </select>
+
+    <!-- 追加：購入元名（任意） -->
+    <label for="purchaseSource">購入したギャラリー名・サービス名・相手のお名前など（任意）</label>
+    <input id="purchaseSource" type="text" placeholder="例）◯◯ギャラリー、◯◯オークション 等" />
+
     <button type="submit">送信する</button>
   </form>
 </div>
 
 <script>
-  // ★あとで正しいID / URL を入れる
   const LIFF_ID = '2009203252-VKc0QZjL';
   const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/hnozocit2ikf8sllv76by7kqc7yfdyrb';
 
   async function main() {
     try {
-      await liff.init({liffId: LIFF_ID});
+      await liff.init({ liffId: LIFF_ID });
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
@@ -94,6 +106,8 @@
         const email = document.getElementById('email').value.trim();
         const artist = document.getElementById('artist').value.trim();
         const serial = document.getElementById('serial').value.trim();
+        const purchaseType = document.getElementById('purchaseType').value;
+        const purchaseSource = document.getElementById('purchaseSource').value.trim();
 
         if (!fullName || !kana || !email) {
           alert('お名前・フリガナ・メールアドレスは必須です。');
@@ -111,13 +125,15 @@
           kana,
           email,
           artist,
-          assets
+          assets,
+          purchaseType,
+          purchaseSource,
         };
 
         const res = await fetch(MAKE_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('Webhook Error: ' + res.status);
 
